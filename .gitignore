@@ -1,0 +1,19 @@
+# 原始安装包和完整 GUI 解包内容不提交
+/yunshu_cpe.deb
+/app/
+
+# headless 运行时日志、socket、缓存和动态生成配置不提交
+/dist/yunshu-headless/opt/apps/yunshu/files/logs/
+/dist/yunshu-headless/opt/apps/yunshu/files/socket/
+/dist/yunshu-headless/opt/apps/yunshu/files/tmp/
+/dist/yunshu-headless/opt/apps/yunshu/files/bak/
+/dist/yunshu-headless/opt/apps/yunshu/files/config/config.db
+/dist/yunshu-headless/opt/apps/yunshu/files/config/f39e*/
+/dist/yunshu-headless/opt/apps/yunshu/files/config/app_config.json
+/dist/yunshu-headless/opt/apps/yunshu/files/config/private_ctl.conf
+
+# 旧的独立安装/无 systemd 脚本不属于当前 NixOS container 方案
+/dist/yunshu-headless/install.sh
+/dist/yunshu-headless/supervise-run.sh
+/dist/yunshu-headless/yunshu-login.sh
+/dist/yunshu-headless/README.md

@@ -1,0 +1,13 @@
+[Unit] 
+Description=yunshu Linux App Update Service
+
+[Service] 
+Type=simple
+StandardOutput=null
+ExecStart=/opt/apps/yunshu/files/bin/yunshu-updater
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=5s
+Restart=on-failure
+
+[Install] 
+WantedBy=multi-user.target

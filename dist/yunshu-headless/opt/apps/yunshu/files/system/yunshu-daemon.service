@@ -1,0 +1,12 @@
+[Unit] 
+Description=yunshu Linux App Protect You 
+ 
+[Service] 
+Type=simple 
+ExecStart=/opt/apps/yunshu/files/bin/yunshu-daemon
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=5s                           
+Restart=on-failure 
+
+[Install] 
+WantedBy=multi-user.target
