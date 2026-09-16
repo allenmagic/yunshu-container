@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 with lib;
 
@@ -21,21 +21,23 @@ let
   # MAC 固定。nspawn 每次创建容器接口都会生成随机 MAC，必须钉死：否则 DHCP
   # 租约随重建漂移、VRRP 对端把本节点当新设备、上游按 MAC 绑定时直接失效。
   #
-  # 必须用 .link（systemd.network.links）：它由 udev 直接读取，容器里没有跑
-  # networkd 也生效。写成 .network（systemd.network.networks）是无效的——
-  # 那种文件只有 networkd 会读，而 NixOS 容器默认不开 networkd，
-  # 结果是配置看着齐全、MAC 实际仍是随机的。
-  #
-  # 前缀 10- 是刻意的：scripted 网络后端会为**每个**在 networking.interfaces
-  # 里声明过的接口自动生成 `40-<接口名>` 的 .link（匹配 OriginalName，写
-  # MACAddress/MTUBytes），而 udev 对同一接口**只应用文件名排序最靠前的那个
-  # .link**。用 10- 保证本模块的设置优先，并且不依赖消费者是否在 guestModule
-  # 里声明过这些接口。
-  macConfig = {
-    systemd.network.links = mapAttrs' (iface: mac: nameValuePair "10-${iface}" {
-      matchConfig.Name = iface;
-      linkConfig.MACAddress = mac;
-    }) cfg.macAddresses;
+  # ⚠️ 不能用 udev 的 .link（systemd.network.links）：macvlan 接口是 nspawn 在
+  # **宿主 netns** 创建好再移进容器的，容器内的 udev 根本收不到设备添加事件，
+  # .link 静默不生效（QEMU 实测：配置 02:00:00:02:00:11，容器内实为随机 MAC）。
+  # 所以用一个先于网络配置执行的 oneshot 直接改，接口此时已存在。
+  macConfig = mkIf (cfg.macAddresses != { }) {
+    systemd.services.fix-mac-addresses = {
+      description = "固定 macvlan 接口 MAC（nspawn 随机分配，.link 对 macvlan 无效）";
+      before = [ "network-pre.target" ];
+      wantedBy = [ "network-pre.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+      script = concatStringsSep "\n" (
+        mapAttrsToList (iface: mac: "${pkgs.iproute2}/bin/ip link set ${iface} address ${mac}") cfg.macAddresses
+      );
+    };
   };
 in
 {
