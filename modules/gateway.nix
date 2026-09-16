@@ -140,6 +140,7 @@ in
         tcp flags syn tcp option maxseg size set rt mtu   # 隧道下防 PMTUD 黑洞
         iifname "${cfg.lanInterface}" accept
         iifname "tun0" accept
+        limit rate 10/minute log prefix "FORWARD_DROP: " drop
       '';
 
       # VRRP 心跳是 IP protocol 112，不是 TCP/UDP——NixOS 防火墙的 input 链默认
