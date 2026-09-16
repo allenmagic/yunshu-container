@@ -137,6 +137,7 @@ in
     networking.firewall = {
       filterForward = true;
       extraForwardRules = ''
+        tcp flags syn tcp option maxseg size set rt mtu   # 隧道下防 PMTUD 黑洞
         iifname "${cfg.lanInterface}" accept
         iifname "tun0" accept
       '';
