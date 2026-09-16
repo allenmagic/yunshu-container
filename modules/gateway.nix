@@ -169,7 +169,7 @@ in
           interval = 3;
           timeout = 2;
           weight = g.tunnelTrackWeight;
-          fall = 3;
+          fall = 1;  # 一次失败立刻降权，缩短启动期 DNS 黑洞窗口
           rise = 3;
           # 默认的 keepalived_script 用户 NixOS 并不创建，keepalived 会告警并
           # 回退到运行用户；显式写 root 免得行为随版本变动。
