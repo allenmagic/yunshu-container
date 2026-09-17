@@ -58,8 +58,8 @@ in
       content = ''
         chain dns-dnat {
           type nat hook prerouting priority dstnat; policy accept;
-          iifname "${cfg.interface}" ip daddr != 127.0.0.1 udp dport 53 dnat to ${cfg.listen}:${toString cfg.port}
-          iifname "${cfg.interface}" ip daddr != 127.0.0.1 tcp dport 53 dnat to ${cfg.listen}:${toString cfg.port}
+          iifname "${cfg.interface}" ip daddr != 127.0.0.1 udp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
+          iifname "${cfg.interface}" ip daddr != 127.0.0.1 tcp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
         }
       '';
     };
