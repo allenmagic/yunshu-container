@@ -76,7 +76,7 @@ in
         containers.<name>.macvlans（systemd-nspawn 的 --network-macvlan=）。
 
         冒号后半段是容器内的名字，**不能省略**：省略时 nspawn 会把容器内接口
-        命名成 mv-<宿主接口>，与 keepalived / DNS 透明重定向里写的 eth0 对不上，
+        命名成 mv-<宿主接口>，与 DNS 透明重定向里写的 eth0 对不上，
         而且不会报任何错（有断言挡着）。
       '';
     };
@@ -132,7 +132,7 @@ in
         网关模块贡献的 guest 配置片段。
 
         存在的理由：yunshu.container.gateway.* 是**宿主侧** option（要在宿主
-        求值，才能被 main-router.nix 设置），而它产生的 nftables/keepalived
+        求值，才能被 main-router.nix 设置），而它产生的 nftables
         配置必须注入**容器内**。两者不在同一个求值上下文，只能由这里搭桥。
       '';
     };
@@ -149,7 +149,7 @@ in
         message = ''
           yunshu.container.macvlans 每一项都要写成 "<宿主接口>:<容器内接口名>"。
           省略冒号后半段的话，nspawn 会把容器内接口命名成 mv-<宿主接口>，
-          与 keepalived / DNS 透明重定向里写的 eth0 对不上，且不报任何错。
+          与 DNS 透明重定向里写的 eth0 对不上，且不报任何错。
         '';
       }
       {

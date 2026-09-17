@@ -25,7 +25,7 @@ modules/
   proxy.nix              # 3proxy 基础能力，不是 mode
   dns.nix                # DNS 独立配置
   modes/
-    gateway.nix          # 透明网关 + keepalived/VRRP + 转发
+    gateway.nix          # 透明网关：接口地址 + 转发 + DNS 透明重定向
     private-proxy.nix    # 内网 3proxy
     public-proxy.nix     # 公网 3proxy，认证/ACL 基础实现
     tproxy.nix           # tproxy 预留模式
@@ -191,13 +191,13 @@ sudo nixos-container run yunshu-router -- \
 
 `yunshu.container.mode` 是唯一入口，当前支持：
 
-- `gateway`：透明网关，开启 IP 转发、keepalived/VRRP 浮动网关，并默认接管 DNS。
+- `gateway`：透明网关，开启 IP 转发与 DNS 透明重定向，并默认接管 DNS。
 - `private_proxy`：面向可信内网的 3proxy，默认不认证、允许访问私网目标。
 - `public_proxy`：面向不可信入口的 3proxy，默认使用来源 ACL（`iponly`）、拒绝私网目标，并要求配置 `publicProxy.allowFrom`。
 - `tproxy`：预留的透明代理模式，当前会显式报未实现。
 
 每个 mode 独立成文件，只启用自己拥有的服务；例如 `gateway` 会强制关闭
-`services.yunshu.proxy`，而 `private_proxy` 会强制关闭 keepalived。这样不会出现
+`services.yunshu.proxy`。这样不会出现
 两个模式的服务同时生效。
 
 DNS 不属于 mode，而是独立的 `services.yunshu.dns` 配置。`gateway` 默认
