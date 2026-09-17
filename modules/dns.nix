@@ -46,6 +46,17 @@ in
         ——直接引用会报 "attribute 'yunshu' missing"。
       '';
     };
+
+    vip = mkOption {
+      type = types.str;
+      default = "192.168.10.1";
+      description = ''
+        浮动网关 VIP：只有目的地址是它的 53 查询会被 DNAT 到隧道 DNS。
+        gateway 模式会把它设成 yunshu.container.gateway.floatIp。
+
+        不能省：同网段其它容器的上游查询也从本接口进来，一并改写就成了环。
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -58,8 +69,8 @@ in
       content = ''
         chain dns-dnat {
           type nat hook prerouting priority dstnat; policy accept;
-          iifname "${cfg.interface}" ip daddr != 127.0.0.1 udp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
-          iifname "${cfg.interface}" ip daddr != 127.0.0.1 tcp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
+          iifname "${cfg.interface}" ip daddr ${cfg.vip} udp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
+          iifname "${cfg.interface}" ip daddr ${cfg.vip} tcp dport 53 dnat ip to ${cfg.listen}:${toString cfg.port}
         }
       '';
     };

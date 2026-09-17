@@ -158,6 +158,7 @@ in
     services.yunshu.dns.enable = mkDefault true;
     services.yunshu.dns.transparentRedirect = mkDefault true;
     services.yunshu.dns.interface = cfg.lanInterface;
+    services.yunshu.dns.vip = g.floatIp;
 
     services.keepalived = {
       enable = true;
