@@ -17,9 +17,8 @@ in
         本容器在 LAN 侧的地址，同时也是下游客户端使用的**网关与 DNS 地址**
         （由 dnsmasq 通过 DHCP option 3/6 下发）。
 
-        本模块据此设置接口地址，并让本机解析器监听它，所以不要同时在
-        guestModule 里再写一份 networking.interfaces.*.ipv4.addresses
-        ——两处不一致时 DNS 会静默失效。
+        本模块据此设置接口地址并让本机解析器监听它；不要同时在 guestModule
+        里再写一份 networking.interfaces.*.ipv4.addresses。
       '';
     };
 
@@ -29,9 +28,6 @@ in
       example = [ "223.5.5.5" "119.29.29.29" ];
       description = ''
         隧道 DNS 不应答时的降级上游（公网 DNS）。空列表 = 不降级。
-
-        本地解析器按 strict-order 逐个尝试、隧道 DNS 在前，所以只在它超时时
-        才轮到公网——隧道正常时被墙域名仍拿 fake-IP，分流不受影响。
       '';
     };
   };

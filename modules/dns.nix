@@ -26,10 +26,7 @@ in
     transparentRedirect = mkOption {
       type = types.bool;
       default = false;
-      description = ''
-        在网关地址上开一个本地解析器，把客户端 DNS 转发到隧道 DNS（首选）或
-        降级上游。这是 fake-IP 分流的入口，不能关。
-      '';
+      description = "在网关地址上开本地解析器（fake-IP 分流的入口，不能关）。";
     };
 
     interface = mkOption {
@@ -59,11 +56,8 @@ in
       default = [ ];
       example = [ "223.5.5.5" "119.29.29.29" ];
       description = ''
-        隧道 DNS 不应答时的降级上游（公网 DNS）。
-
-        用 dnsmasq 的 strict-order 实现回落：按声明顺序逐个尝试，隧道 DNS
-        超时才轮到公网。**不要在隧道可用时也把公网 DNS 混进来**——那样被墙
-        域名可能拿到公网污染应答，fake-IP 不触发，分流直接失效。
+        隧道 DNS 不应答时的降级上游（公网 DNS）。按声明顺序回落，
+        隧道 DNS 超时才轮到它们。
       '';
     };
   };
@@ -72,11 +66,8 @@ in
     networking.firewall.allowedTCPPorts = mkIf (cfg.listen != "127.0.0.1" && cfg.listen != "::1") [ cfg.port ];
     networking.firewall.allowedUDPPorts = mkIf (cfg.listen != "127.0.0.1" && cfg.listen != "::1") [ cfg.port ];
 
-    # 以前这里是"把 LAN 的 53 DNAT 到隧道 DNS / 降级容器"。跨容器 DNAT 在
-    # macvlan 兄弟之间不工作（真机实测：指向其它容器或公网地址一律超时，
-    # 只有指向本机地址能用），而且一旦目标不可达客户端 DNS 就整个断掉。
-    # 改成在本地起解析器后，DNS 永远有一个在场的应答者，选错上游最多是
-    # 解析慢或拿到真实 IP，不会"全网 DNS 黑洞"。
+    # 不要改回"把 53 DNAT 到别的容器"：macvlan 下跨容器 DNAT 实测不通，
+    # 且目标不可达时客户端 DNS 会整个断掉。本地解析器永远在场。
     services.dnsmasq = mkIf cfg.transparentRedirect {
       enable = true;
       # 不接管容器自身的解析：容器的 resolv.conf 由部署方写死（隧道 DNS 优先），
