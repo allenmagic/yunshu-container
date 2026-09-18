@@ -17,22 +17,21 @@ in
         本容器在 LAN 侧的地址，同时也是下游客户端使用的**网关与 DNS 地址**
         （由 dnsmasq 通过 DHCP option 3/6 下发）。
 
-        本模块据此设置接口地址并生成 DNS 重定向规则，所以不要同时在
+        本模块据此设置接口地址，并让本机解析器监听它，所以不要同时在
         guestModule 里再写一份 networking.interfaces.*.ipv4.addresses
         ——两处不一致时 DNS 会静默失效。
       '';
     };
 
-    dnsFallback = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      example = "192.168.10.7";
+    dnsFallbackServers = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      example = [ "223.5.5.5" "119.29.29.29" ];
       description = ''
-        隧道不可用时把客户端 DNS 转给谁（通常是 dnsmasq 容器的地址）。
-        null = 不降级，隧道没连上时客户端 DNS 直接黑洞。
+        隧道 DNS 不应答时的降级上游（公网 DNS）。空列表 = 不降级。
 
-        这是"网关只有一台"之后唯一的降级逻辑：以前靠 BACKUP 节点接管 VIP
-        来换 DNS 路径，现在改成本容器内换一条 DNAT 目标。
+        本地解析器按 strict-order 逐个尝试、隧道 DNS 在前，所以只在它超时时
+        才轮到公网——隧道正常时被墙域名仍拿 fake-IP，分流不受影响。
       '';
     };
   };
@@ -84,7 +83,7 @@ in
       '';
     };
 
-    # 透明网关自己接管 DNS：把 LAN 侧的 53 查询 DNAT 到隧道 DNS，
+    # 网关本机接管 DNS：在网关地址上起本地解析器，上游隧道 DNS 优先、公网兜底。
     # 这是 fake-IP 分流的入口，不能关。
     # interface / vip / fallback 必须在这里从宿主侧 option 传进去——dns 模块在
     # 容器内求值，读不到 yunshu.container.*（见 dns.nix 里该 option 的说明）。
@@ -92,6 +91,6 @@ in
     services.yunshu.dns.transparentRedirect = mkDefault true;
     services.yunshu.dns.interface = cfg.lanInterface;
     services.yunshu.dns.vip = g.address;
-    services.yunshu.dns.fallbackServer = g.dnsFallback;
+    services.yunshu.dns.fallbackServers = g.dnsFallbackServers;
   };
 }
